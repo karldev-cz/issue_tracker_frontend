@@ -25,7 +25,7 @@ export function IssuesContainer() {
     }
   };
 
-  const handleIssueDeleted = () => {
+  const handleIssuesChange = () => {
     loadIssues();
   };
 
@@ -50,7 +50,7 @@ export function IssuesContainer() {
           issues={issues}
           statusFilter={statusFilter}
           onFilterChange={setStatusFilter}
-          onIssueDeleted={handleIssueDeleted}
+          onIssuesChange={handleIssuesChange}
         />
       )}
     </Container>

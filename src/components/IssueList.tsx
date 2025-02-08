@@ -7,14 +7,14 @@ interface IssueListProps {
   issues: Issue[];
   statusFilter: IssueStatus | "all";
   onFilterChange: (status: IssueStatus | "all") => void;
-  onIssueDeleted: () => void;
+  onIssuesChange: () => void;
 }
 
 export function IssueList({
   issues,
   statusFilter,
   onFilterChange,
-  onIssueDeleted,
+  onIssuesChange,
 }: IssueListProps) {
   const filteredIssues =
     statusFilter === "all"
@@ -37,7 +37,7 @@ export function IssueList({
           <ToggleButton value="all">All</ToggleButton>
           {Object.values(ISSUE_STATUSES).map((status) => (
             <ToggleButton key={status} value={status}>
-              {status.replace('_', ' ')}
+              {status.replace("_", " ")}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -46,7 +46,7 @@ export function IssueList({
       <Grid container spacing={2}>
         {filteredIssues.map((issue) => (
           <Grid item xs={12} key={issue.id}>
-            <IssueCard issue={issue} onIssueDeleted={onIssueDeleted} />
+            <IssueCard issue={issue} onIssuesChange={onIssuesChange} />
           </Grid>
         ))}
       </Grid>

@@ -21,10 +21,10 @@ import { AxiosError } from "axios";
 
 interface IssueCardProps {
   issue: Issue;
-  onIssueDeleted?: () => void;
+  onIssuesChange?: () => void;
 }
 
-export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
+export function IssueCard({ issue, onIssuesChange }: IssueCardProps) {
   const [error, setError] = useState<string | null>(null);
   const [currentStatus, setCurrentStatus] = useState<Status>(issue.status);
   const [isRunning, setIsRunning] = useState(issue.isRunning);
@@ -49,6 +49,7 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
     try {
       await issueApi.updateIssue(issueId, { status: newStatus });
       setCurrentStatus(newStatus as Status);
+      onIssuesChange?.();
     } catch (error) {
       console.error("Failed to update status:", error);
       setError("Failed to update status");
@@ -64,7 +65,7 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
         const updatedIssue = await issueApi.stopTimer(issueId);
         setIsRunning(false);
         setTotalTimeSpent(updatedIssue.totalTimeSpent);
-        onIssueDeleted?.();
+        onIssuesChange?.();
       }
     } catch (error) {
       console.error("Failed to handle timer:", error);
@@ -78,7 +79,7 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
   const handleDelete = async (issueId: number) => {
     try {
       await issueApi.deleteIssue(issueId);
-      onIssueDeleted?.();
+      onIssuesChange?.();
     } catch (error) {
       console.error("Failed to delete issue:", error);
       setError("Failed to delete issue");
