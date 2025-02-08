@@ -25,6 +25,7 @@ export interface Issue {
   description?: string;
   status: Status;
   totalTimeSpent: string;
+  isRunning: boolean;
 }
 
 export interface CreateIssueDto {
@@ -65,6 +66,13 @@ export const issueApi = {
 
   stopTimer: async (id: number) => {
     const response = await api.post<Issue>(`/issues/${id}/stop`);
+    return response.data;
+  },
+
+  getIssueStatus: async (id: number) => {
+    const response = await api.get<{ isRunning: boolean }>(
+      `/issues/${id}/status`
+    );
     return response.data;
   },
 };

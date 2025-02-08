@@ -6,14 +6,23 @@ import { NewIssueForm } from "./NewIssueForm";
 import { IssueList } from "./IssueList";
 import { Box, Container, Typography } from "@mui/material";
 import { IssueStatus } from "@/constants/issueStatuses";
+import { IssuesSkeleton } from "./IssuesSkeleton";
 
 export function IssuesContainer() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [statusFilter, setStatusFilter] = useState<IssueStatus | "all">("all");
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadIssues = async () => {
-    const data = await issueApi.getIssues();
-    setIssues(data);
+    setIsLoading(true);
+    try {
+      const data = await issueApi.getIssues();
+      setIssues(data);
+    } catch (error) {
+      console.error("Failed to load issues:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleIssueDeleted = () => {
@@ -34,12 +43,16 @@ export function IssuesContainer() {
         <NewIssueForm onIssueCreated={loadIssues} />
       </Box>
 
-      <IssueList
-        issues={issues}
-        statusFilter={statusFilter}
-        onFilterChange={setStatusFilter}
-        onIssueDeleted={handleIssueDeleted}
-      />
+      {isLoading ? (
+        <IssuesSkeleton />
+      ) : (
+        <IssueList
+          issues={issues}
+          statusFilter={statusFilter}
+          onFilterChange={setStatusFilter}
+          onIssueDeleted={handleIssueDeleted}
+        />
+      )}
     </Container>
   );
 }

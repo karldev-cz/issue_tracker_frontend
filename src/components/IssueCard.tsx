@@ -1,6 +1,6 @@
 "use client";
 
-import { Issue, issueApi } from "@/api/issueApi";
+import { Issue, issueApi, Status } from "@/api/issueApi";
 import {
   Box,
   Button,
@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { ISSUE_STATUSES } from "@/constants/issueStatuses";
 import { DeleteOutline } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Notification } from "./Notification";
 import { AxiosError } from "axios";
 
@@ -26,11 +26,29 @@ interface IssueCardProps {
 
 export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
   const [error, setError] = useState<string | null>(null);
+  const [currentStatus, setCurrentStatus] = useState<Status>(issue.status);
+  const [isRunning, setIsRunning] = useState(issue.isRunning);
+  const [totalTimeSpent, setTotalTimeSpent] = useState(issue.totalTimeSpent);
+
+  useEffect(() => {
+    const checkTimerStatus = async () => {
+      try {
+        const { isRunning: currentIsRunning } = await issueApi.getIssueStatus(
+          issue.id
+        );
+        setIsRunning(currentIsRunning);
+      } catch (error) {
+        console.error("Failed to check timer status:", error);
+      }
+    };
+
+    checkTimerStatus();
+  }, [issue.id]);
 
   const handleStatusChange = async (issueId: number, newStatus: string) => {
     try {
       await issueApi.updateIssue(issueId, { status: newStatus });
-      window.location.reload();
+      setCurrentStatus(newStatus as Status);
     } catch (error) {
       console.error("Failed to update status:", error);
       setError("Failed to update status");
@@ -41,10 +59,13 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
     try {
       if (action === "start") {
         await issueApi.startTimer(issueId);
+        setIsRunning(true);
       } else {
-        await issueApi.stopTimer(issueId);
+        const updatedIssue = await issueApi.stopTimer(issueId);
+        setIsRunning(false);
+        setTotalTimeSpent(updatedIssue.totalTimeSpent);
+        onIssueDeleted?.();
       }
-      window.location.reload();
     } catch (error) {
       console.error("Failed to handle timer:", error);
       const axiosError = error as AxiosError<{ message: string }>;
@@ -98,7 +119,7 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
             <FormControl size="small">
               <Select
-                value={issue.status}
+                value={currentStatus}
                 onChange={(e) => handleStatusChange(issue.id, e.target.value)}
               >
                 {Object.values(ISSUE_STATUSES).map((status) => (
@@ -114,6 +135,7 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
               color="success"
               onClick={() => handleTimer(issue.id, "start")}
               sx={{ textTransform: "none" }}
+              disabled={isRunning}
             >
               Start
             </Button>
@@ -122,11 +144,12 @@ export function IssueCard({ issue, onIssueDeleted }: IssueCardProps) {
               color="error"
               onClick={() => handleTimer(issue.id, "stop")}
               sx={{ textTransform: "none" }}
+              disabled={!isRunning}
             >
               Stop
             </Button>
 
-            <Typography>Total time: {issue.totalTimeSpent}</Typography>
+            <Typography>Total time: {totalTimeSpent}</Typography>
           </Box>
         </CardContent>
       </Card>
